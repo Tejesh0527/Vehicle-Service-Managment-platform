@@ -9,7 +9,9 @@ dotenv.config();
 const seedAdmin = async () => {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/vehicle-rentals');
+    await mongoose.connect(
+      process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/vehicle-rentals'
+    );
     console.log('Connected to MongoDB');
 
     // Check if admin already exists

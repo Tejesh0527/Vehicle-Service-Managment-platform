@@ -21,6 +21,10 @@ const AdminLogin = () => {
       // Check if user is admin
       if (response.user && response.user.role === 'admin') {
         localStorage.setItem('token', response.token);
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('role', 'admin');
+        // Notify Navbar to update auth buttons immediately
+        window.dispatchEvent(new Event('authChanged'));
         navigate('/admin');
       } else {
         setError('Access denied. Admin credentials required.');
@@ -36,17 +40,22 @@ const AdminLogin = () => {
     <div
       className="min-vh-100 d-flex align-items-center justify-content-center position-relative"
       style={{
-        backgroundColor: '#6c757d',
-        backgroundImage: `
-          radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-          radial-gradient(circle at 40% 80%, rgba(120, 119, 198, 0.2) 0%, transparent 50%),
-          linear-gradient(135deg, #6c757d 0%, #5a6268 50%, #495057 100%)
-        `,
-        backgroundSize: '100% 100%',
+        backgroundImage: `url('/images/back.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'fixed'
       }}
     >
+      {/* Dark overlay for readability */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.55)',
+          backdropFilter: 'blur(2px)'
+        }}
+      />
       {/* Back to Site Link */}
       <Link
         to="/"
@@ -57,7 +66,8 @@ const AdminLogin = () => {
           fontSize: '14px',
           color: '#ffffff',
           opacity: '0.9',
-          fontWeight: '400'
+          fontWeight: '400',
+          zIndex: 2
         }}
       >
         <i className="fas fa-arrow-left me-2"></i>
@@ -72,7 +82,9 @@ const AdminLogin = () => {
           height: 'auto',
           borderRadius: '15px',
           backgroundColor: '#ffffff',
-          boxShadow: '0 15px 35px rgba(0, 0, 0, 0.3)'
+          boxShadow: '0 15px 35px rgba(0, 0, 0, 0.3)',
+          position: 'relative',
+          zIndex: 2
         }}
       >
         <div className="card-body d-flex flex-column justify-content-center" style={{ padding: '40px 35px' }}>

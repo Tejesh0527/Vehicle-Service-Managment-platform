@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getVehicles, createVehicle, updateVehicle, deleteVehicle } from '../services/vehicleService';
+import { getVehicles, createVehicle, updateVehicle, deleteVehicle, getCategoryFeatures } from '../services/vehicleService';
 
 const ManageVehicles = () => {
   const navigate = useNavigate();
@@ -297,30 +297,36 @@ const ManageVehicles = () => {
 
 // Vehicle Form Component
 const VehicleForm = ({ vehicle, onSave, onCancel }) => {
+  const initCategory = (vehicle?.category || 'luxury').toLowerCase();
   const [formData, setFormData] = useState({
     name: vehicle?.name || '',
     type: vehicle?.type || 'Car',
-    category: vehicle?.category || 'luxury',
+    category: initCategory,
     pricePerDay: vehicle?.pricePerDay || vehicle?.price || '',
     year: vehicle?.year || new Date().getFullYear(),
     fuelType: vehicle?.specifications?.fuelType || vehicle?.fuel || 'Gasoline',
     status: vehicle?.status || 'available',
+    available: vehicle?.available !== undefined ? vehicle.available : true,
     image: vehicle?.image || '',
-    description: vehicle?.description || ''
+    description: vehicle?.description || '',
+    features: vehicle?.features || getCategoryFeatures(initCategory)
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Structure data to match backend expectations
+    const catLower = formData.category.toLowerCase();
+    // Structure data to match backend + localStorage expectations
     const finalData = {
       name: formData.name,
       type: formData.type,
-      category: formData.category,
+      category: catLower,                        // always lowercase
       pricePerDay: parseInt(formData.pricePerDay),
       year: parseInt(formData.year),
       status: formData.status,
+      available: formData.status === 'available', // derive from status
       image: formData.image,
       description: formData.description,
+      features: getCategoryFeatures(catLower),    // auto from category
       specifications: {
         fuelType: formData.fuelType,
         transmission: 'Automatic',
@@ -331,10 +337,13 @@ const VehicleForm = ({ vehicle, onSave, onCancel }) => {
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    const updated = { ...formData, [name]: value };
+    // Auto-update features when category changes
+    if (name === 'category') {
+      updated.features = getCategoryFeatures(value.toLowerCase());
+    }
+    setFormData(updated);
   };
 
   return (
@@ -386,6 +395,15 @@ const VehicleForm = ({ vehicle, onSave, onCancel }) => {
               <option value="suv">SUV</option>
               <option value="bike">Bike</option>
             </select>
+            {/* Live features preview */}
+            <div className="mt-2 d-flex flex-wrap gap-1">
+              {formData.features.map((f, i) => (
+                <span key={i} className="badge bg-light text-dark border" style={{ fontSize: '0.75rem' }}>
+                  {f}
+                </span>
+              ))}
+            </div>
+            <small className="text-muted">Features auto-set by category</small>
           </div>
         </div>
         <div className="col-md-6">
@@ -402,6 +420,7 @@ const VehicleForm = ({ vehicle, onSave, onCancel }) => {
           </div>
         </div>
       </div>
+
 
       <div className="row">
         <div className="col-md-6">

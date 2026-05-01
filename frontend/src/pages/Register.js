@@ -44,7 +44,7 @@ const Register = () => {
       localStorage.setItem('token', response.token);
       setSuccess('Registration successful! Redirecting...');
       setTimeout(() => {
-        navigate('/');
+        navigate('/login');
       }, 1500);
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');

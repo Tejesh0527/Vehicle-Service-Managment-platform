@@ -29,10 +29,10 @@ exports.createBooking = async (req, res) => {
     }
 
     // Check availability (different property names in memory vs MongoDB)
-    const isAvailable = db ? vehicle.status === 'available' : vehicle.availability;
-    if (!isAvailable) {
-      return res.status(400).json({ message: 'Vehicle is not available for the selected dates' });
-    }
+    // const isAvailable = db ? vehicle.status === 'available' : vehicle.availability;
+    // if (!isAvailable) {
+    //   return res.status(400).json({ message: 'Vehicle is not available for the selected dates' });
+    // }
 
     // Calculate total price
     const start = new Date(startDate);

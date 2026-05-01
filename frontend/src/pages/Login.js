@@ -18,6 +18,10 @@ const Login = () => {
     try {
       const response = await login(form);
       localStorage.setItem('token', response.token);
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('role', response.user?.role || 'user');
+      // Notify Navbar to update auth buttons immediately
+      window.dispatchEvent(new Event('authChanged'));
 
       // Redirect based on user role
       if (response.user && response.user.role === 'admin') {
@@ -45,6 +49,8 @@ const Login = () => {
 
       const response = await login(adminCredentials);
       localStorage.setItem('token', response.token);
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('role', 'admin');
       navigate('/admin');
     } catch (err) {
       setError('Admin login failed. Please check if admin account exists.');
@@ -66,6 +72,8 @@ const Login = () => {
 
       const response = await login(demoCredentials);
       localStorage.setItem('token', response.token);
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('role', 'user');
       navigate('/');
     } catch (err) {
       setError('Demo login failed. Please check if demo account exists.');

@@ -12,6 +12,7 @@ const connectDB = require('../config/db');
 const sampleVehicles = [
   {
     name: 'Mercedes-Benz S-Class',
+    type: 'Car',
     category: 'luxury',
     description: 'Experience ultimate luxury with our premium Mercedes-Benz S-Class. Perfect for business trips and special occasions.',
     pricePerDay: 299,
@@ -28,6 +29,7 @@ const sampleVehicles = [
   },
   {
     name: 'BMW M4 Coupe',
+    type: 'Car',
     category: 'sports',
     description: 'Feel the thrill of driving with our high-performance BMW M4 Coupe. Built for speed and precision.',
     pricePerDay: 399,
@@ -44,6 +46,7 @@ const sampleVehicles = [
   },
   {
     name: 'Range Rover Evoque',
+    type: 'Car',
     category: 'suv',
     description: 'Conquer any terrain with style in our luxurious Range Rover Evoque. Perfect for adventures and city driving.',
     pricePerDay: 249,
@@ -60,6 +63,7 @@ const sampleVehicles = [
   },
   {
     name: 'Tesla Model S',
+    type: 'Car',
     category: 'luxury',
     description: 'Experience the future of driving with our Tesla Model S. Zero emissions, maximum performance.',
     pricePerDay: 349,
@@ -76,6 +80,7 @@ const sampleVehicles = [
   },
   {
     name: 'Audi A4 Sedan',
+    type: 'Car',
     category: 'sedan',
     description: 'Elegant and efficient, our Audi A4 offers the perfect balance of luxury and practicality.',
     pricePerDay: 179,
@@ -92,6 +97,7 @@ const sampleVehicles = [
   },
   {
     name: 'Porsche 911 Carrera',
+    type: 'Car',
     category: 'sports',
     description: 'The iconic sports car that defines performance. Experience pure driving pleasure with our Porsche 911.',
     pricePerDay: 499,
@@ -119,7 +125,7 @@ const sampleUsers = [
     name: 'John Doe',
     email: 'john@example.com',
     password: 'user123',
-    role: 'user'
+    role: 'customer'
   }
 ];
 

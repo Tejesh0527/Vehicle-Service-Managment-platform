@@ -105,7 +105,7 @@ const Book = () => {
         navigate('/bookings');
       }, 2000);
     } catch (err) {
-      setError(err.message || 'Booking failed');
+      setError(err.response?.data?.message || err.message || 'Booking failed');
     }
     setLoading(false);
   };

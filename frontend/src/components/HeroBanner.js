@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const HeroBanner = () => {
-  const isLoggedIn = localStorage.getItem('token');
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
 
   return (
     <section

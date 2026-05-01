@@ -5,87 +5,84 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  // ─── updateNavbar ─────────────────────────────────────────────────────────
+  // Reads auth state fresh from localStorage on every call.
+  // Equivalent to a global updateNavbar() function.
+  const updateNavbar = () => {
+    const isLogged = localStorage.getItem('isLoggedIn') === 'true';
+    const role = localStorage.getItem('role');
     const token = localStorage.getItem('token');
-    if (token) {
+
+    if (isLogged && token) {
       setIsLoggedIn(true);
-      checkUserRole();
-    }
-
-    // Close dropdown when clicking outside
-    const handleClickOutside = (event) => {
-      if (!event.target.closest('.dropdown')) {
-        setShowDropdown(false);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, []);
-
-  const checkUserRole = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/users/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUserRole(userData.role);
-      }
-    } catch (error) {
-      console.error('Error checking user role:', error);
+      setUserRole(role || 'user');
+    } else {
+      setIsLoggedIn(false);
+      setUserRole(null);
     }
   };
+
+  useEffect(() => {
+    // Run on every page load
+    updateNavbar();
+
+    // Same-tab auth changes (login/logout)
+    window.addEventListener('authChanged', updateNavbar);
+    // Cross-tab changes
+    window.addEventListener('storage', updateNavbar);
+
+    return () => {
+      window.removeEventListener('authChanged', updateNavbar);
+      window.removeEventListener('storage', updateNavbar);
+    };
+  }, []); // eslint-disable-line
+
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.setItem('isLoggedIn', 'false');
+    localStorage.removeItem('role');
     setIsLoggedIn(false);
     setUserRole(null);
+    window.dispatchEvent(new Event('authChanged'));
     navigate('/');
   };
 
-  const handleAdminAccess = () => {
-    navigate('/admin/login');
-  };
+  // ─── Button visibility logic ───────────────────────────────────────────────
+  // ADMIN btn: visible when NOT logged in  OR  when logged in as admin
+  //            hidden only when logged in as a normal user
+  const showAdminBtn = !isLoggedIn || userRole === 'admin';
+  // ADMIN btn destination: /admin if already admin, else admin login page
+  const adminTarget = isLoggedIn && userRole === 'admin' ? '/admin' : '/admin/login';
 
   return (
     <header className="bg-white shadow-sm" style={{ position: 'sticky', top: 0, zIndex: 1000 }}>
       <div className="container">
         <nav className="navbar navbar-expand-lg navbar-light py-3">
-          {/* Brand Logo - Matching your screenshot */}
+
+          {/* Brand */}
           <Link to="/" className="navbar-brand fw-bold" style={{ fontSize: '1.8rem', color: '#333' }}>
             Enjoy<span style={{ color: '#007bff' }}>Drive</span>
           </Link>
 
-          {/* Mobile Menu Toggle */}
+          {/* Mobile Toggle */}
           <button
             className="navbar-toggler border-0"
             type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              setShowMobileMenu(!showMobileMenu);
-            }}
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
             aria-expanded={showMobileMenu}
             aria-controls="navbarNav"
           >
             <span className="navbar-toggler-icon"></span>
           </button>
 
-          {/* Navigation Menu - Matching your screenshot */}
+          {/* Nav Links + Auth */}
           <div className={`collapse navbar-collapse ${showMobileMenu ? 'show' : ''}`} id="navbarNav">
             <ul className="navbar-nav mx-auto">
               <li className="nav-item">
-                <Link to="/" className="nav-link fw-semibold text-dark px-3">
-                  Home
-                </Link>
+                <Link to="/" className="nav-link fw-semibold text-dark px-3">Home</Link>
               </li>
               <li className="nav-item">
                 <a
@@ -93,14 +90,10 @@ const Navbar = () => {
                   className="nav-link fw-semibold text-dark px-3"
                   onClick={(e) => {
                     e.preventDefault();
-                    const element = document.getElementById('collection');
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth' });
-                    }
+                    const el = document.getElementById('collection');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }}
-                >
-                  Collection
-                </a>
+                >Collection</a>
               </li>
               <li className="nav-item">
                 <a
@@ -108,14 +101,10 @@ const Navbar = () => {
                   className="nav-link fw-semibold text-dark px-3"
                   onClick={(e) => {
                     e.preventDefault();
-                    const element = document.getElementById('testimonials');
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth' });
-                    }
+                    const el = document.getElementById('testimonials');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }}
-                >
-                  Testimonials
-                </a>
+                >Testimonials</a>
               </li>
               <li className="nav-item">
                 <a
@@ -123,76 +112,67 @@ const Navbar = () => {
                   className="nav-link fw-semibold text-dark px-3"
                   onClick={(e) => {
                     e.preventDefault();
-                    const element = document.getElementById('contact');
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth' });
-                    }
+                    const el = document.getElementById('contact');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }}
-                >
-                  Contact
-                </a>
+                >Contact</a>
               </li>
             </ul>
 
-            {/* Auth Buttons - Matching your screenshot exactly */}
+            {/* ── Auth Buttons ── */}
             <div className="d-flex align-items-center gap-2">
+
+              {/* ADMIN — visible when not logged in (beside LOGIN) and when role=admin */}
+              {showAdminBtn && (
+                <button
+                  id="admin-btn"
+                  onClick={() => navigate(adminTarget)}
+                  className="btn fw-semibold px-4 py-2"
+                  style={{
+                    backgroundColor: '#28a745',
+                    border: 'none',
+                    borderRadius: '5px',
+                    fontSize: '14px',
+                    color: '#fff'
+                  }}
+                >
+                  ADMIN
+                </button>
+              )}
+
               {isLoggedIn ? (
                 <>
-                  {userRole === 'admin' && (
-                    <button
-                      onClick={() => navigate('/admin')}
-                      className="btn text-white fw-semibold px-4 py-2"
-                      style={{
-                        backgroundColor: '#28a745',
-                        border: 'none',
-                        borderRadius: '5px',
-                        fontSize: '14px'
-                      }}
-                    >
-                      ADMIN
-                    </button>
-                  )}
-                  <div className="dropdown">
-                    <button
-                      className="btn btn-outline-primary dropdown-toggle fw-semibold px-4 py-2"
-                      type="button"
-                      id="accountDropdown"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                      style={{ borderRadius: '5px', fontSize: '14px' }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowDropdown(!showDropdown);
-                      }}
-                    >
-                      ACCOUNT
-                    </button>
-                    <ul className={`dropdown-menu ${showDropdown ? 'show' : ''}`} aria-labelledby="accountDropdown">
-                      <li>
-                        <Link to="/profile" className="dropdown-item">
-                          <i className="fas fa-user-circle me-2"></i>Profile
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/bookings" className="dropdown-item">
-                          <i className="fas fa-calendar-alt me-2"></i>My Bookings
-                        </Link>
-                      </li>
-                      <li><hr className="dropdown-divider" /></li>
-                      <li>
-                        <button onClick={handleLogout} className="dropdown-item text-danger">
-                          <i className="fas fa-sign-out-alt me-2"></i>Logout
-                        </button>
-                      </li>
-                    </ul>
-                  </div>
+                  {/* MY BOOKINGS — all logged-in users */}
+                  <Link
+                    to="/bookings"
+                    className="btn btn-outline-primary fw-semibold px-4 py-2"
+                    style={{ borderRadius: '5px', fontSize: '14px' }}
+                  >
+                    MY BOOKINGS
+                  </Link>
+
+                  {/* LOGOUT */}
+                  <button
+                    id="logout-btn"
+                    onClick={handleLogout}
+                    className="btn text-white fw-semibold px-4 py-2"
+                    style={{
+                      backgroundColor: '#dc3545',
+                      border: 'none',
+                      borderRadius: '5px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    LOGOUT
+                  </button>
                 </>
               ) : (
                 <>
-                  {/* LOGIN Button - Matching your screenshot */}
+                  {/* LOGIN */}
                   <Link
+                    id="login-btn"
                     to="/login"
-                    className="btn text-white fw-semibold px-4 py-2 me-2"
+                    className="btn text-white fw-semibold px-4 py-2"
                     style={{
                       backgroundColor: '#007bff',
                       border: 'none',
@@ -203,45 +183,9 @@ const Navbar = () => {
                   >
                     LOGIN
                   </Link>
-
-                  {/* Admin Button - More visible with better focus */}
-                  <button
-                    onClick={handleAdminAccess}
-                    className="btn text-white fw-semibold px-4 py-2"
-                    style={{
-                      backgroundColor: '#28a745',
-                      border: 'none',
-                      borderRadius: '5px',
-                      fontSize: '14px',
-                      opacity: 0.2,
-                      transition: 'all 0.3s ease',
-                      boxShadow: '0 2px 4px rgba(40, 167, 69, 0.3)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.opacity = '1';
-                      e.target.style.transform = 'translateY(-1px)';
-                      e.target.style.boxShadow = '0 4px 8px rgba(40, 167, 69, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.opacity = '0.2';
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 2px 4px rgba(40, 167, 69, 0.3)';
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.outline = '2px solid rgba(40, 167, 69, 0.6)';
-                      e.target.style.outlineOffset = '2px';
-                      e.target.style.opacity = '1';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.outline = 'none';
-                      e.target.style.opacity = '0.2';
-                    }}
-                    title="Admin Access"
-                  >
-                    ADMIN
-                  </button>
                 </>
               )}
+
             </div>
           </div>
         </nav>
